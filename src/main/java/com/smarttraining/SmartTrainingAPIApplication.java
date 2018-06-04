@@ -22,7 +22,7 @@ public class SmartTrainingAPIApplication {
         executor.setCorePoolSize(5);
         executor.setMaxPoolSize(20);
         executor.setQueueCapacity(200);
-        executor.setThreadNamePrefix("TerraformCmdExecutor-");
+        executor.setThreadNamePrefix("SmartTrainingExecutor-");
         executor.initialize();
         return executor;
     }
