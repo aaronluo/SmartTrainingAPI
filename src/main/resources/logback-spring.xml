@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+    <!-- property name="LOG_PATH" value="/home/ubuntu/terraform-api/logs" />
+        
+    <springProfile name="dev">
+        <property name="LOG_PATH" value="C:\\Terraform\\api\\logs" />
+    </springProfile-->
+    
+    <!-- system.out appender -->
+    <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                %d{dd-MM-yyyy HH:mm:ss} [%-5level]  %logger{36}.%M  %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <!-- file appender for error log -->
+    <!-- appender name="ERR_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/api_err.log</file>
+        <encoder>
+            <pattern>
+                %msg%n
+            </pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/archived/api_err_%d{yyyyMMdd}.gz</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender-->
+    
+    <!-- file appender for audit log -->
+    <!-- appender name="AUDIT_LOG" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_PATH}/api_audit.log</file>
+        <encoder>
+            <pattern>
+               %msg%n
+            </pattern>
+        </encoder>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_PATH}/archived/api_audit_%d{yyyyMMdd}.gz</fileNamePattern>
+            <maxHistory>7</maxHistory>
+            <totalSizeCap>2GB</totalSizeCap>
+        </rollingPolicy>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <onMatch>ACCEPT</onMatch>
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender-->
+    
+    <!-- logger definitions -->
+    <root level="INFO">
+        <appender-ref ref="STDOUT" />
+    </root>
+    
+    <logger name="com.smarttraining" additivity="false" level="DEBUG">
+         <appender-ref ref="STDOUT" />
+    </logger>
+</configuration>
