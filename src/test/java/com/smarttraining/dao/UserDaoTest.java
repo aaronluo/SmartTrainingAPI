@@ -3,6 +3,7 @@ package com.smarttraining.dao;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.smarttraining.entity.User;
+import com.smarttraining.entity.UserProperty;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -121,6 +122,27 @@ public class UserDaoTest {
         assertThat(userOptional.get().getProperties().size()).isEqualTo(1);
     }
 	
+    @Test
+    public void testAddUserProperty() {
+        User user = new User();
+        user.setUsername("aaronluo");
+        user.setPassword("123abc");
+        UserProperty userProp = new UserProperty();
+        userProp.setName("age");
+        userProp.setValue("40");
+        user.addProperty(userProp);
+        
+        user = userDao.saveAndFlush(user);
+        
+        Optional<User> userProxy = userDao.findByUsername("aaronluo");
+        
+        assertThat(userProxy.isPresent()).isTrue();
+        
+        user = userProxy.get();
+        
+        assertThat(user.getProperties().size()).isEqualTo(1);
+        
+    }
 	
 	@Test
 	public void testUserDeletion () {

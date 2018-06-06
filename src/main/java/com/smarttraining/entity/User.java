@@ -3,6 +3,7 @@ package com.smarttraining.entity;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
+import java.util.ArrayList;
 import java.util.Collection;
 
 import javax.persistence.CascadeType;
@@ -29,7 +30,7 @@ public class User extends BaseEntity {
     @OneToMany(mappedBy="owner", orphanRemoval=true, cascade = CascadeType.ALL)
     @Where(clause="active=1")
     @OrderBy("id desc")
-    private Collection<UserProperty> properties;
+    private Collection<UserProperty> properties = new ArrayList<UserProperty>();
     
     public void addProperty(UserProperty property) {
         this.properties.add(property);
