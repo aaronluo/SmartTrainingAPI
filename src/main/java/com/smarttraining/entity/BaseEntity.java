@@ -1,64 +1,40 @@
 package com.smarttraining.entity;
 
+import org.springframework.data.annotation.CreatedDate;
+import org.springframework.data.annotation.LastModifiedDate;
+import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+
 import java.util.Date;
 
 import javax.persistence.Column;
+import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.PreRemove;
 
 import lombok.Data;
 
 @Data
 @MappedSuperclass
-public abstract class BaseEntity {
+@EntityListeners(AuditingEntityListener.class)
+public abstract class BaseEntity{
 
     @Id
     @GeneratedValue
     protected Long id;
     
     @Column(columnDefinition="boolean default true")
-	protected boolean active;
+	protected boolean active = true;
     
+    @CreatedDate
     protected Date createDate;
     
+    @LastModifiedDate
     protected Date updateDate;
     
-//	public Date getCreateDate() {
-//        return createDate;
-//    }
-//
-//    public void setCreateDate(Date createDate) {
-//        this.createDate = createDate;
-//    }
-//
-//    public Date getUpdateDate() {
-//        return updateDate;
-//    }
-//
-//    public void setUpdateDate(Date updateDate) {
-//        this.updateDate = updateDate;
-//    }
-//
-//    public boolean isActive() {
-//		return active;
-//	}
-//
-//	public void setActive(boolean active) {
-//		this.active = active;
-//	}
-//	
-//    public Long getId() {
-//        return id;
-//    }
-//
-//    public void setId(Long id) {
-//        this.id = id;
-//    }
-//    
-//	public BaseEntity() {
-//		this.active = true;
-//		this.createDate = Calendar.getInstance(TimeZone.getTimeZone("UTC")).getTime();
-//		this.updateDate = this.createDate;
-//	}
+    @PreRemove
+    public void inactivate() {
+        this.active = false;
+    }
 }

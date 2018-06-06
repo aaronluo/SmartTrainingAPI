@@ -59,6 +59,8 @@
     <root level="INFO">
         <appender-ref ref="STDOUT" />
     </root>
+    <logger name="org.springframework.web" level="INFO"/>
+    <logger name="org.springframework.test" level="INFO"/>
     
     <logger name="com.smarttraining" additivity="false" level="DEBUG">
          <appender-ref ref="STDOUT" />
