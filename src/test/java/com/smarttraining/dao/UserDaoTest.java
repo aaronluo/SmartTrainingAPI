@@ -2,6 +2,8 @@ package com.smarttraining.dao;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.querydsl.core.types.dsl.BooleanExpression;
+import com.smarttraining.entity.QUser;
 import com.smarttraining.entity.User;
 import com.smarttraining.entity.UserProperty;
 
@@ -17,6 +19,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.time.LocalDate;
+import java.time.Month;
 import java.util.List;
 import java.util.Optional;
 
@@ -77,9 +81,9 @@ public class UserDaoTest {
 	@Test
 	@Sql(scripts="classpath:users_create.sql")
 	public void testGetUserByUsername() {
-	    String username = "eric";
+	    String username = "aaron";
 	    Optional<User> user = userDao.findByUsername(username);
-	    assertThat(user.get().getId()).isEqualTo(1L);
+	    assertThat(user.get().getId()).isEqualTo(3L);
 	    
 	    //no user with the username
 	    username = "aaronluo";
@@ -158,5 +162,18 @@ public class UserDaoTest {
         Optional<User> userProxy = userDao.findByUsername(user.getUsername());
         
         assertThat(userProxy.isPresent()).isFalse();
+	}
+	
+	@Test
+	@Sql(scripts="classpath:users_create.sql")
+	public void testQuery() {
+	    QUser user = QUser.user;
+	    BooleanExpression hasUsername = user.username.like("%aaron%");
+	    Page<User> users = userDao.findAll(hasUsername, new PageRequest(0, 5));
+	    assertThat(users.getContent().size()).isEqualTo(1);
+	    
+	    LocalDate firstDayOf2018 = LocalDate.of(2018, Month.JANUARY, 1);
+//	    BooleanExpression createBeforeDate = user.createDate.lt(firstDayOf2018);
+	    
 	}
 }

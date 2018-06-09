@@ -4,7 +4,7 @@ import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
-import java.util.Date;
+import java.time.LocalDateTime;
 
 import javax.persistence.Column;
 import javax.persistence.EntityListeners;
@@ -28,10 +28,10 @@ public abstract class BaseEntity{
 	protected boolean active = true;
     
     @CreatedDate
-    protected Date createDate;
+    protected LocalDateTime createDate;
     
     @LastModifiedDate
-    protected Date updateDate;
+    protected LocalDateTime updateDate;
     
     @PreRemove
     public void inactivate() {

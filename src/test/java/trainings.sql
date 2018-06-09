@@ -1,0 +1,4 @@
+insert into t_training(id, title, description, unit_price, start_date, end_date, limitation, create_date, update_date, active) values(1, '1-1 class', '', 90.00, null, null, 100, now(), now(), 1);
+insert into t_training(id, title, description, unit_price, start_date, end_date, limitation, create_date, update_date, active) values(2, '1-1 class special', '', 120.00, null, null, 100, now(), now(), 1);
+insert into t_training(id, title, description, unit_price, start_date, end_date, limitation, create_date, update_date, active) values(3, 'group class', '', 80.00, null, null, 100, now(), now(), 1);
+insert into t_training(id, title, description, unit_price, start_date, end_date, limitation, create_date, update_date, active) values(4, 'old group class', '', 80.00, null, null, 100, now(), now(), 0);
