@@ -20,6 +20,8 @@ import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.Month;
 import java.util.List;
 import java.util.Optional;
@@ -172,8 +174,13 @@ public class UserDaoTest {
 	    Page<User> users = userDao.findAll(hasUsername, new PageRequest(0, 5));
 	    assertThat(users.getContent().size()).isEqualTo(1);
 	    
-	    LocalDate firstDayOf2018 = LocalDate.of(2018, Month.JANUARY, 1);
-//	    BooleanExpression createBeforeDate = user.createDate.lt(firstDayOf2018);
+	    LocalDateTime firstDayOf2018 = LocalDateTime.of(LocalDate.of(2018, Month.JANUARY, 1), LocalTime.of(23, 59));
+	    BooleanExpression createBeforeDate = user.createDate.lt(firstDayOf2018);
+	    users = userDao.findAll(createBeforeDate, new PageRequest(0, 5));
+	    assertThat(users.getContent().size()).isEqualTo(1);
 	    
+	    users = userDao.findAll(hasUsername.and(createBeforeDate), new PageRequest(0, 5));
+	    
+	    assertThat(users.getContent().size()).isZero();
 	}
 }

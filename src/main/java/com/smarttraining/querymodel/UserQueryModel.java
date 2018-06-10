@@ -1,4 +1,4 @@
-package com.smarttraining.dto;
+package com.smarttraining.querymodel;
 
 import java.util.Date;
 
