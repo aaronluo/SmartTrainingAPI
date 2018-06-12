@@ -4,9 +4,9 @@ import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Column;
@@ -38,10 +38,10 @@ public class Training extends BaseEntity {
     private BigDecimal unitPrice;
     
     @Column(nullable=true)
-    private Date startDate;
+    private LocalDate startDate;
     
     @Column(nullable=true)
-    private Date endDate;
+    private LocalDate endDate;
     
     @Column(columnDefinition="int default 0")
     private int limitation;
@@ -49,5 +49,5 @@ public class Training extends BaseEntity {
     @OneToMany(mappedBy="training", cascade = CascadeType.ALL)
     @Where(clause="active=true")
     @OrderBy("id desc")
-    private Collection<UserTrainingAccount> accounts = new ArrayList<UserTrainingAccount>();
+    private Collection<TrainingAccount> accounts = new ArrayList<TrainingAccount>();
 }

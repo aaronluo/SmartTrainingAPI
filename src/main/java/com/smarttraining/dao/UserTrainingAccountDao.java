@@ -1,7 +1,7 @@
 package com.smarttraining.dao;
 
-import com.smarttraining.entity.UserTrainingAccount;
+import com.smarttraining.entity.TrainingAccount;
 
-public interface UserTrainingAccountDao extends BaseDao<UserTrainingAccount> {
+public interface UserTrainingAccountDao extends BaseDao<TrainingAccount> {
 
 }

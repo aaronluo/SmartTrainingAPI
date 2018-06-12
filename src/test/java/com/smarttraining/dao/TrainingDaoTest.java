@@ -3,6 +3,7 @@ package com.smarttraining.dao;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.smarttraining.entity.Training;
+import com.smarttraining.querymodel.TrainingQueryModel;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -56,5 +57,19 @@ public class TrainingDaoTest {
         
         Optional<Training> t = trainingDao.findById(4L);
         assertThat(t.isPresent()).isFalse();
+        
+        t = trainingDao.findById(2L);
+        
+        if(t.isPresent()) {
+            t.get().setUnitPrice(new BigDecimal(35.00));
+            trainingDao.saveAndFlush(t.get());
+        }
+        t = trainingDao.findById(2L);
+        assertThat(t.get().getUnitPrice()).isEqualTo(new BigDecimal(35.00));
+    }
+    
+    @Test
+    public void testQuery() {
+        TrainingQueryModel trainingQM = new TrainingQueryModel();
     }
 }

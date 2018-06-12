@@ -32,6 +32,11 @@ public class User extends BaseEntity {
     @OrderBy("id desc")
     private Collection<UserProperty> properties = new ArrayList<UserProperty>();
     
+    @OneToMany(mappedBy="owner", cascade= CascadeType.ALL)
+    @Where(clause="active=true")
+    @OrderBy("createDate desc")
+    private Collection<TrainingAccount> trainingAccounts = new ArrayList<TrainingAccount>();
+    
     public void addProperty(UserProperty property) {
         this.properties.add(property);
         property.setOwner(this);
@@ -40,5 +45,10 @@ public class User extends BaseEntity {
     public void removeProperty(UserProperty proerty) {
         properties.remove(proerty);
         proerty.setOwner(null);
+    }
+    
+    public void addTrainingAccount(TrainingAccount account) {
+        trainingAccounts.add(account);
+        account.setOwner(this);
     }
 }
