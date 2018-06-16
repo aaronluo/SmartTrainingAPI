@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
 import com.smarttraining.entity.QUser;
+import com.smarttraining.entity.Role;
 import com.smarttraining.entity.User;
 import com.smarttraining.entity.UserProperty;
 
@@ -38,6 +39,9 @@ public class UserDaoTest {
 	@Autowired
 	private UserDao userDao;
 	
+	@Autowired
+	private RoleDao roleDao;
+	
 	@Test
 	@Sql(scripts="classpath:users_create.sql")
 	public void testGetAllUsers() {
@@ -59,11 +63,17 @@ public class UserDaoTest {
 	}
 	
 	@Test
-	public void testNewUser() {
-	    User user = new User();
-	    user.setUsername("aaronluo");
-	    user.setPassword("123abc");
-	    
+	@Sql(scripts="classpath:roles.sql")
+    public void testNewUser() {
+        User user = new User();
+        user.setUsername("aaronluo");
+        user.setPassword("123abc");
+        
+        Role roleTrainer = roleDao.findByName(Role.RoleType.TRAINER).orElse(null);
+        
+        assertThat(roleTrainer).isNotNull();
+        user.addRole(roleTrainer);
+        
 	    user = userDao.saveAndFlush(user);
 	    
 	    assertThat(user.getId()).isGreaterThan(0L);
@@ -71,6 +81,8 @@ public class UserDaoTest {
 	    assertThat(user.getCreateDate()).isNotNull();
 	    assertThat(user.getUpdateDate()).isNotNull();
 	    assertThat(user.getCreateDate()).isEqualTo(user.getUpdateDate());
+	    assertThat(user.getRoles().size()).isEqualTo(1);
+	    assertThat((user.getRoles().toArray(new Role[user.getRoles().size()])[0]).getName()).isEqualTo(Role.RoleType.TRAINER);
 	    
 	    //test update date being injected automatically
 	    user.setPassword("11111");
@@ -147,9 +159,23 @@ public class UserDaoTest {
         user = userProxy.get();
         
         assertThat(user.getProperties().size()).isEqualTo(1);
-        
     }
 	
+    @Test
+    @Sql(scripts = "classpath:users_property_create.sql")
+    public void test_addValidProperty() {
+        User user = userDao.findByUsername("aaronluo").get();
+        UserProperty userProp = new UserProperty();
+        userProp.setName("family_name");
+        userProp.setValue("罗");
+        
+        user.addProperty(userProp);
+        
+        user = userDao.saveAndFlush(user);
+        
+        assertThat(user.getProperties().size()).isEqualTo(3);
+    }
+    
 	@Test
 	public void testUserDeletion () {
         User user = new User();

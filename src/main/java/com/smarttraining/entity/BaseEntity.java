@@ -1,23 +1,23 @@
 package com.smarttraining.entity;
 
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
+import com.fasterxml.jackson.annotation.JsonFormat;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 import javax.persistence.Column;
-import javax.persistence.EntityListeners;
 import javax.persistence.GeneratedValue;
 import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
+import javax.persistence.PrePersist;
 import javax.persistence.PreRemove;
+import javax.persistence.PreUpdate;
 
 import lombok.Data;
 
 @Data
 @MappedSuperclass
-@EntityListeners(AuditingEntityListener.class)
+//@EntityListeners(AuditingEntityListener.class)
 public abstract class BaseEntity{
 
     @Id
@@ -27,14 +27,27 @@ public abstract class BaseEntity{
     @Column(columnDefinition="boolean default true")
 	protected boolean active = true;
     
-    @CreatedDate
+//    @CreatedDate
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     protected LocalDateTime createDate;
     
-    @LastModifiedDate
+//    @LastModifiedDate
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     protected LocalDateTime updateDate;
     
     @PreRemove
     public void inactivate() {
         this.active = false;
+    }
+    
+    @PrePersist
+    public void prePersist() {
+        createDate = LocalDateTime.now(ZoneId.systemDefault());
+        updateDate = createDate;
+    }
+    
+    @PreUpdate
+    public void preUpdate() {
+        updateDate = LocalDateTime.now(ZoneId.systemDefault());
     }
 }

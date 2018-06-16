@@ -1,5 +1,7 @@
 package com.smarttraining.querymodel;
 
+import com.smarttraining.util.RangeVal;
+
 import java.time.LocalDateTime;
 
 import lombok.Data;
@@ -9,7 +11,5 @@ public final class UserQueryModel {
 
     private String username;
     
-    private LocalDateTime createFromDate;
-    
-    private LocalDateTime createEndDate;
+    private RangeVal<LocalDateTime> createDate;
 }

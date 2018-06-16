@@ -8,6 +8,10 @@ import java.util.Collection;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
 import javax.persistence.OneToMany;
 import javax.persistence.OrderBy;
 import javax.persistence.Table;
@@ -37,6 +41,15 @@ public class User extends BaseEntity {
     @OrderBy("createDate desc")
     private Collection<TrainingAccount> trainingAccounts = new ArrayList<TrainingAccount>();
     
+    
+    @ManyToMany(fetch=FetchType.EAGER, cascade=CascadeType.ALL)
+    @JoinTable(name="t_user_role",
+            joinColumns={@JoinColumn(name="user_id")},
+            inverseJoinColumns={@JoinColumn(name="role_id")})
+    @Where(clause="active=true")
+    @OrderBy("id desc")
+    private Collection<Role> roles = new ArrayList<Role>();
+    
     public void addProperty(UserProperty property) {
         this.properties.add(property);
         property.setOwner(this);
@@ -50,5 +63,10 @@ public class User extends BaseEntity {
     public void addTrainingAccount(TrainingAccount account) {
         trainingAccounts.add(account);
         account.setOwner(this);
+    }
+    
+    public void addRole(Role role) {
+        roles.add(role);
+//        role.getUsers().add(this);
     }
 }

@@ -1,5 +1,7 @@
 package com.smarttraining.entity;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
@@ -40,8 +42,10 @@ public class TrainingAccount extends BaseEntity {
     @Column(precision=9, scale=2)
     private BigDecimal balance = new BigDecimal(0.00);
     
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate validBeginDate;
     
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     private LocalDate validEndDate;
     
     @Column(precision=5, scale=2)

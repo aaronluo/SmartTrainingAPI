@@ -9,6 +9,8 @@ public class UserToken {
 
     private String username;
     
+    private Long userId;
+    
     private String accessToken;
     
     private String refreshToken;
