@@ -3,6 +3,8 @@ package com.smarttraining.dao;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.querydsl.core.types.dsl.BooleanExpression;
+import com.querydsl.jpa.JPAExpressions;
+import com.smarttraining.entity.QRole;
 import com.smarttraining.entity.QUser;
 import com.smarttraining.entity.Role;
 import com.smarttraining.entity.User;
@@ -24,6 +26,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.Month;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -196,6 +199,7 @@ public class UserDaoTest {
 	@Sql(scripts="classpath:users_create.sql")
 	public void testQuery() {
 	    QUser user = QUser.user;
+	    QRole role = QRole.role;
 	    BooleanExpression hasUsername = user.username.like("%aaron%");
 	    Page<User> users = userDao.findAll(hasUsername, new PageRequest(0, 5));
 	    assertThat(users.getContent().size()).isEqualTo(1);
@@ -206,7 +210,19 @@ public class UserDaoTest {
 	    assertThat(users.getContent().size()).isEqualTo(1);
 	    
 	    users = userDao.findAll(hasUsername.and(createBeforeDate), new PageRequest(0, 5));
-	    
 	    assertThat(users.getContent().size()).isZero();
+	    
+	    List<String> roles = new ArrayList<String>();
+	    roles.add("TRAINER");
+	    
+	    QRole role_1 = new QRole("TRAINER");
+	    QRole role_2 = new QRole("TRAINEE");
+	    
+	    BooleanExpression isTrainer = user.roles.contains(JPAExpressions.selectFrom(role).where(role.name.in("TRAINER")));
+	    
+	    users = userDao.findAll(hasUsername.and(isTrainer), new PageRequest(0, 5));
+	    
+	    assertThat(users.getContent().size()).isEqualTo(1);
+	    assertThat(users.getContent().get(0).getUsername()).isEqualTo("aaron");
 	}
 }

@@ -8,3 +8,9 @@ insert into t_user(id, username, password, create_date, update_date, active) val
 insert into t_user(id, username, password, create_date, update_date, active) values(8, 'tim', '', now(), now(), 1);
 insert into t_user(id, username, password, create_date, update_date, active) values(9, 'steven', '', now(), now(), 1);
 insert into t_user(id, username, password, create_date, update_date, active) values(10, 'tom', '', now(), now(), 0);
+
+insert into t_role(id, name, active, create_date, update_date) values(1, 'TRAINER', 1, now(), now());
+insert into t_role(id, name, active, create_date, update_date) values(2, 'TRAINEE', 1, now(), now());
+
+insert into t_user_role(user_id, role_id) values (3, 1);
+insert into t_user_role(user_id, role_id) values  (1, 2);

@@ -1,7 +1,9 @@
 package com.smarttraining.util;
 
+import com.smarttraining.dto.TrainingAccountDto;
 import com.smarttraining.dto.UserDto;
 import com.smarttraining.dto.UserPropertyDto;
+import com.smarttraining.entity.TrainingAccount;
 import com.smarttraining.entity.User;
 import com.smarttraining.entity.UserProperty;
 
@@ -56,4 +58,21 @@ public final class Util {
     public UserProperty propDtoToProp(UserPropertyDto propDto) {
         return modelMapper.map(propDto, UserProperty.class);
     }
+
+    public TrainingAccount trainingAccountDtoToTrainingAccount(
+            TrainingAccountDto accountDto) {
+        return modelMapper.map(accountDto, TrainingAccount.class);
+    }
+    
+    public ModelMapper getMapper() {
+        return modelMapper;
+    }
+
+    public <D, T> D geneicMapping(T source, Class<D> destClass) {
+        return modelMapper.map(source, destClass);
+    }
+    
+//    public <D, T> T dtoToPo(D dto, Class<T> typeParameterClass) {
+//        return modelMapper.map(dto, typeParameterClass);
+//    }
 }

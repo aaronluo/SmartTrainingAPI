@@ -14,6 +14,4 @@ public class TrainingAccountDto {
     BigDecimal unitPrice;
     LocalDate validBeginDate;
     LocalDate validEndDate;
-    
-    
 }

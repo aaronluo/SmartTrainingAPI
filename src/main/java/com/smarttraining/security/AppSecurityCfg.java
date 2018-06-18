@@ -44,8 +44,8 @@ public class AppSecurityCfg extends WebSecurityConfigurerAdapter {
         return new BCryptPasswordEncoder();
     }
     
-    @Bean
-    public JWTAuthenticationFilter JWTAuthenticationFilter() {
-        return new JWTAuthenticationFilter();
-    }
+//    @Bean
+//    public JWTAuthenticationFilter JWTAuthenticationFilter() {
+//        return new JWTAuthenticationFilter();
+//    }
 }
