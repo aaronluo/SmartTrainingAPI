@@ -1,11 +1,11 @@
 package com.smarttraining.exception;
 
 @SuppressWarnings("serial")
-public class QueryModelException extends Exception {
+public class BadRequestException extends Exception {
 
     String errorMsg;
     
-    public QueryModelException(String errorMsg) {
+    public BadRequestException(String errorMsg) {
         this.errorMsg = errorMsg;
     }
     

@@ -7,8 +7,9 @@ import lombok.Data;
 @Data
 public class TrainingLogDto {
 
-    UserDto trainer;
-    UserDto trainee;
-    TrainingAccountDto  account;
+    Long trainerId;
+    Long traineeId;
+    Long  accountId;
     LocalDateTime createDate;
+    String comment;
 }

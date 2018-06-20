@@ -43,9 +43,11 @@ public class TrainingAccount extends BaseEntity {
     private BigDecimal balance = new BigDecimal(0.00);
     
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @Column(nullable=false)
     private LocalDate validBeginDate;
     
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @Column(nullable=true)
     private LocalDate validEndDate;
     
     @Column(precision=5, scale=2)

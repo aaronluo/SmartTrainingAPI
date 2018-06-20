@@ -6,6 +6,7 @@ import org.hibernate.annotations.Where;
 import java.math.BigDecimal;
 
 import javax.persistence.CascadeType;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
@@ -32,6 +33,10 @@ public class DepositeLog extends BaseEntity{
     @JoinColumn(name="account_id")
     private TrainingAccount account;
     
-    private BigDecimal amount;
+    @Column(nullable=false)
+    private BigDecimal amount = new BigDecimal(0.00);
+    
+    @Column(nullable=true)
+    private String comment;
     
 }

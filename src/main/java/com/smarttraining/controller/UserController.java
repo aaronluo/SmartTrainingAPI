@@ -5,6 +5,7 @@ import com.smarttraining.dto.TrainingAccountDto;
 import com.smarttraining.dto.UserDto;
 import com.smarttraining.dto.UserPropertyDto;
 import com.smarttraining.dto.UserToken;
+import com.smarttraining.entity.DepositeLog;
 import com.smarttraining.entity.TrainingAccount;
 import com.smarttraining.entity.User;
 import com.smarttraining.entity.UserProperty;
@@ -13,8 +14,9 @@ import com.smarttraining.exception.ApiException;
 import com.smarttraining.exception.InvalidUserOrPasswordException;
 import com.smarttraining.exception.InvalidUsernamePasswordExcpetion;
 import com.smarttraining.exception.PropertyAlreadyExistingException;
-import com.smarttraining.exception.QueryModelException;
+import com.smarttraining.exception.BadRequestException;
 import com.smarttraining.exception.TrainingAccountAlreadyExistingExecption;
+import com.smarttraining.exception.TrainingAccountNotFoundException;
 import com.smarttraining.exception.TrainingNotFoundException;
 import com.smarttraining.exception.UserAlreadyExistingException;
 import com.smarttraining.exception.UserNotFoundException;
@@ -37,7 +39,6 @@ import java.util.List;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
-import io.swagger.models.HttpMethod;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -135,7 +136,7 @@ public class UserController extends GeneicValidator {
         }catch(UserNotFoundException | TrainingNotFoundException e) {
             throw new ApiException(
                     new ApiError(HttpStatus.NOT_FOUND, e.getMessage()), e);
-        }catch(QueryModelException | TrainingAccountAlreadyExistingExecption  e) {
+        }catch(BadRequestException | TrainingAccountAlreadyExistingExecption  e) {
             throw new ApiException(
                     new ApiError(HttpStatus.BAD_REQUEST, e.getMessage()), e);
         }
@@ -174,18 +175,54 @@ public class UserController extends GeneicValidator {
         try {
             verifyUserQueryModel(userQueryModel);
             users = userService.listUser(userQueryModel);
-        } catch (QueryModelException e) {
+        } catch (BadRequestException e) {
             throw new ApiException(new ApiError(HttpStatus.BAD_REQUEST, e.getMessage()), e);
         }
         
         return users.map(util::userToUserDto);
     }
     
-    @RequestMapping(value="/{username}/accounts/{accountId}", method=RequestMethod.POST, produces = "application/json")
+    @ApiOperation(value="Deposite money into a traiing account of a specific user")
+    @ApiResponses(value={
+             @ApiResponse(code=200, message="Updated training account"),
+             @ApiResponse(code=403, message="Access forbidden"),
+             @ApiResponse(code=400, message="Bad Request"),
+             @ApiResponse(code=404, message="The user or the training account not found")
+     })
+    @RequestMapping(value="/{username}/accounts/{accountId}/deposite", method=RequestMethod.POST, produces = "application/json")
     public TrainingAccountDto addMoney(@PathVariable String username, 
-            @PathVariable Long accountId, @RequestBody DepositeLogDto deposite) {
-        
-        return null;
+            @PathVariable Long accountId, @RequestBody DepositeLogDto depositeDto) throws ApiException {
+         try {
+            DepositeLog depostie = verifyDepositeLog(depositeDto);
+            TrainingAccount updatedAccount = userService.deposite(username, accountId, depostie);
+            
+            return util.geneicMapping(updatedAccount, TrainingAccountDto.class);
+        } catch (BadRequestException e) {
+            throw new ApiException(new ApiError(HttpStatus.BAD_REQUEST, e.getMessage()), e);
+        } catch (UserNotFoundException | TrainingAccountNotFoundException e) {
+            throw new ApiException(new ApiError(HttpStatus.NOT_FOUND, e.getMessage()), e);
+        }
     }
     
+    @ApiOperation(value="query users by page")
+    @ApiResponses(value={
+             @ApiResponse(code=200, message="Current page of users"),
+             @ApiResponse(code=403, message="Access forbidden"),
+             @ApiResponse(code=400, message="Bad Request"),
+             @ApiResponse(code=404, message="The user or the training account not found")
+     })
+    @RequestMapping(value="/{username}/accounts/{accountId}", method=RequestMethod.PUT, produces = "application/json")
+    public TrainingAccountDto updateAccount(@PathVariable String username, 
+            @PathVariable Long accountId, @RequestBody TrainingAccountDto accountDto) throws ApiException {
+        try {
+            TrainingAccount account = this.verifyAccount(accountDto);
+            account = userService.updateTrainingAccount(username, accountId, account);
+            
+            return util.geneicMapping(account, TrainingAccountDto.class);
+        } catch (BadRequestException  e) {
+            throw new ApiException(new ApiError(HttpStatus.BAD_REQUEST, e.getMessage()), e);
+        } catch (UserNotFoundException | TrainingAccountNotFoundException  e) {
+            throw new ApiException(new ApiError(HttpStatus.NOT_FOUND, e.getMessage()), e);
+        }
+    }
 }

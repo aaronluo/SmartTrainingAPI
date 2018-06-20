@@ -52,6 +52,6 @@ public class Training extends BaseEntity {
     
     @OneToMany(mappedBy="training", cascade = CascadeType.ALL)
     @Where(clause="active=true")
-    @OrderBy("id desc")
+    @OrderBy("update_date desc")
     private Collection<TrainingAccount> accounts = new ArrayList<TrainingAccount>();
 }

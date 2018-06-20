@@ -3,6 +3,7 @@ package com.smarttraining.entity;
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.JoinColumn;
 import javax.persistence.OneToOne;
@@ -30,4 +31,7 @@ public class TrainingLog extends BaseEntity {
     @OneToOne
     @JoinColumn(name="account_id")
     private TrainingAccount account;
+    
+    @Column(nullable=false)
+    private String comment;
 }

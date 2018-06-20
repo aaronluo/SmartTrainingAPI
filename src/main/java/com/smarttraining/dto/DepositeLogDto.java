@@ -13,4 +13,6 @@ public class DepositeLogDto {
     BigDecimal amount;
     
     LocalDateTime createDate;
+    
+    String comment;
 }
