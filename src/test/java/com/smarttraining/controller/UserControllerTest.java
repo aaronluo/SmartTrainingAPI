@@ -7,9 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.smarttraining.dao.UserDao;
 import com.smarttraining.dto.UserToken;
 import com.smarttraining.entity.User;
-import com.smarttraining.security.AppSecurityCfg;
 import com.smarttraining.service.UserService;
-import com.smarttraining.util.JWTUtil;
 import com.smarttraining.util.TestUtil;
 import com.smarttraining.util.Util;
 
@@ -21,7 +19,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
@@ -30,7 +27,6 @@ import java.time.LocalDateTime;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest(UserController.class)
-@Import(AppSecurityCfg.class)
 public class UserControllerTest {
 
     @TestConfiguration
@@ -39,13 +35,7 @@ public class UserControllerTest {
         public Util util() {
             return new Util();
         }
-        
-        @Bean
-        public JWTUtil JWTUtil() {
-            return new JWTUtil();
-        }
-        
-        
+ 
     }
     
     @Autowired
@@ -62,7 +52,7 @@ public class UserControllerTest {
         UserToken token = new UserToken();
         token.setUsername("aaronluo_2018");
         Mockito.when(userService.isUserExisting("aaronluo_2018")).thenReturn(true);
-        Mockito.when(userService.login("aaronluo_2018", "sword2$8")).thenReturn(token);
+//        Mockito.when(userService.login("aaronluo_2018", "sword2$8")).thenReturn(token);
         
         User user = new User();
         user.setUsername("aaronluo_2018");

@@ -32,6 +32,6 @@ public class TrainingLog extends BaseEntity {
     @JoinColumn(name="account_id")
     private TrainingAccount account;
     
-    @Column(nullable=false)
+    @Column(nullable=true)
     private String comment;
 }

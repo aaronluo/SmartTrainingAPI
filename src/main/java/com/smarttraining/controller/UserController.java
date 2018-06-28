@@ -1,36 +1,44 @@
 package com.smarttraining.controller;
 
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
+import static org.springframework.web.bind.annotation.RequestMethod.GET;
+import static org.springframework.web.bind.annotation.RequestMethod.POST;
+import static org.springframework.web.bind.annotation.RequestMethod.PUT;
+
 import com.smarttraining.dto.DepositeLogDto;
 import com.smarttraining.dto.TrainingAccountDto;
+import com.smarttraining.dto.TrainingDto;
+import com.smarttraining.dto.TrainingLogDto;
 import com.smarttraining.dto.UserDto;
 import com.smarttraining.dto.UserPropertyDto;
-import com.smarttraining.dto.UserToken;
 import com.smarttraining.entity.DepositeLog;
+import com.smarttraining.entity.Training;
 import com.smarttraining.entity.TrainingAccount;
+import com.smarttraining.entity.TrainingLog;
 import com.smarttraining.entity.User;
 import com.smarttraining.entity.UserProperty;
-import com.smarttraining.exception.ApiError;
 import com.smarttraining.exception.ApiException;
-import com.smarttraining.exception.InvalidUserOrPasswordException;
+import com.smarttraining.exception.BadRequestException;
 import com.smarttraining.exception.InvalidUsernamePasswordExcpetion;
 import com.smarttraining.exception.PropertyAlreadyExistingException;
-import com.smarttraining.exception.BadRequestException;
 import com.smarttraining.exception.TrainingAccountAlreadyExistingExecption;
 import com.smarttraining.exception.TrainingAccountNotFoundException;
 import com.smarttraining.exception.TrainingNotFoundException;
 import com.smarttraining.exception.UserAlreadyExistingException;
 import com.smarttraining.exception.UserNotFoundException;
+import com.smarttraining.querymodel.DepositeQueryModel;
+import com.smarttraining.querymodel.TrainingLogQueryModel;
+import com.smarttraining.querymodel.TrainingQueryModel;
 import com.smarttraining.querymodel.UserQueryModel;
 import com.smarttraining.service.UserService;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.ArrayList;
@@ -40,31 +48,14 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 
+
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping(value="/users")
+@RequestMapping(value="/api/users")
 public class UserController extends GeneicValidator {
 
     @Autowired
     UserService userService;
-    
-    @ApiOperation(value="user login endpoint")
-    @ApiResponses(value={
-             @ApiResponse(code=200, message="user access token JWT", response=UserToken.class),
-             @ApiResponse(code=403, message="Access forbidden"),
-             @ApiResponse(code=400, message="Wrong username or password")
-     })
-    @RequestMapping(value="/login", method = RequestMethod.POST,  produces = "application/json")
-    public UserToken login(@RequestBody UserDto userDto) throws ApiException {
-        UserToken token = null;
-        try {
-            token = userService.login(userDto.getUsername(), userDto.getPassword());
-        } catch (UserNotFoundException | InvalidUserOrPasswordException e) {
-            throw new ApiException(new ApiError(HttpStatus.BAD_REQUEST, e.getMessage()), e);
-        }
-        
-        return token;
-    }
     
     @ApiOperation(value="register a new user with specified roles")
     @ApiResponses(value={
@@ -72,14 +63,14 @@ public class UserController extends GeneicValidator {
              @ApiResponse(code=403, message="Access forbidden"),
              @ApiResponse(code=400, message="Wrong username or password")
      })
-    @RequestMapping(value="/register", method = RequestMethod.POST,  produces = "application/json")
+    @RequestMapping(value="/register", method = POST,  produces = "application/json")
     public UserDto register(@RequestBody UserDto userDto) throws ApiException {
-        User user = util.userDtoToUser(userDto);
+        User user = util.geneicMapping(userDto, User.class);
         try {
             user =  userService.register(user);
         } catch (UserAlreadyExistingException
                 | InvalidUsernamePasswordExcpetion e) {
-            throw new ApiException(new ApiError(HttpStatus.BAD_REQUEST, e.getMessage()), e);
+            handleException(e);
         }
         
         return util.userToUserDto(user);
@@ -92,30 +83,39 @@ public class UserController extends GeneicValidator {
              @ApiResponse(code=400, message="Inccorect property name or value"),
              @ApiResponse(code=404, message="User not found")
      })
-    @RequestMapping(value="/{userId}/properties", method=RequestMethod.POST, produces = "application/json")
+//    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @RequestMapping(value="/{userId}/properties", method=POST, produces = "application/json")
     public UserDto  addProperties(@PathVariable Long userId, 
             @RequestBody List<UserPropertyDto> properties) throws ApiException {
         List<UserProperty> props = new ArrayList<UserProperty>();
         properties.forEach(p -> props.add(util.propDtoToProp(p)));
         
         if(props.stream().filter(p -> util.isEmpty(p.getName())).count() > 0) {
-            throw new ApiException(
-                    new ApiError(HttpStatus.BAD_REQUEST, "Property name cannot be empty"),  null);
+            handleException(BAD_REQUEST, "Property name cannot be empty");
         }
-        
         User user = null;
-        
         try {
             user = userService.addProperties(userId, props);
-        } catch (UserNotFoundException e) {
-            throw new ApiException(
-                    new ApiError(HttpStatus.NOT_FOUND, e.getMessage()), e);
-        } catch (PropertyAlreadyExistingException e) {
-            throw new ApiException(
-                    new ApiError(HttpStatus.BAD_REQUEST, e.getMessage()), e);
-        }
+        } catch (UserNotFoundException | PropertyAlreadyExistingException e) {
+            handleException(e);
+        } 
         
         return util.userToUserDto(user);
+    }
+    
+    
+    @ApiOperation(value="update addtional property to a sepcific user")
+    @ApiResponses(value={
+             @ApiResponse(code=200, message="newly created user", response=UserDto.class),
+             @ApiResponse(code=403, message="Access forbidden"),
+             @ApiResponse(code=400, message="Inccorect property name or value"),
+             @ApiResponse(code=404, message="User or property not found")
+     })
+    @RequestMapping(value="/{userId}/properties", method=PUT, produces = "application/json")
+    public UserDto updateProperties(@PathVariable Long userId, 
+            @RequestBody List<UserPropertyDto> properties) throws ApiException {
+        //TODO:
+        return null;
     }
     
     @ApiOperation(value="add a new training account for a specifc user")
@@ -125,7 +125,8 @@ public class UserController extends GeneicValidator {
              @ApiResponse(code=400, message="Incorrect account info or the account already there"),
              @ApiResponse(code=404, message="User not found or the selected training not found")
      })
-    @RequestMapping(value="/{userId}/accounts", method=RequestMethod.POST, produces="application/json")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @RequestMapping(value="/{userId}/accounts", method=POST, produces="application/json")
     public UserDto addTrainingAccount(@PathVariable Long userId, 
             @RequestBody TrainingAccountDto accountDto) throws ApiException {
         
@@ -133,12 +134,8 @@ public class UserController extends GeneicValidator {
         try{
             TrainingAccount account = verifyAccount(accountDto);
             user = userService.addAccount(userId, account);
-        }catch(UserNotFoundException | TrainingNotFoundException e) {
-            throw new ApiException(
-                    new ApiError(HttpStatus.NOT_FOUND, e.getMessage()), e);
-        }catch(BadRequestException | TrainingAccountAlreadyExistingExecption  e) {
-            throw new ApiException(
-                    new ApiError(HttpStatus.BAD_REQUEST, e.getMessage()), e);
+        }catch(UserNotFoundException | TrainingNotFoundException | BadRequestException | TrainingAccountAlreadyExistingExecption e) {
+            handleException(e);
         }
         
         return util.userToUserDto(user);
@@ -150,16 +147,17 @@ public class UserController extends GeneicValidator {
              @ApiResponse(code=403, message="Access forbidden"),
              @ApiResponse(code=404, message="User not found or the selected training not found")
      })
-    @RequestMapping(value="/{username}", method=RequestMethod.GET, produces="application/json")
-    public UserDto getUser(@PathVariable String username) throws ApiException {
+    @RequestMapping(value="/{userId}", method=GET, produces="application/json")
+    public UserDto getUser(@PathVariable Long  userId) throws ApiException {
+
         User user = null;
         try {
-            user = userService.getUser(username);
+            user = userService.getUser(userId);
         } catch (UserNotFoundException e) {
-            throw new ApiException(new ApiError(HttpStatus.NOT_FOUND, e.getMessage()), e);
+            handleException(e);
         }
         
-        return util.userToUserDto(user);
+        return  util.userToUserDto(user);
     }
     
     @ApiOperation(value="query users by page")
@@ -168,15 +166,14 @@ public class UserController extends GeneicValidator {
              @ApiResponse(code=403, message="Access forbidden"),
              @ApiResponse(code=400, message="Bad Request")
      })
-    @RequestMapping(value="/query", method=RequestMethod.POST, produces="application/json")
+    @RequestMapping(value="/query", method=POST, produces="application/json")
     public Page<UserDto> listUser(@RequestBody UserQueryModel userQueryModel) throws ApiException {
         Page<User> users = null;
-        
         try {
             verifyUserQueryModel(userQueryModel);
             users = userService.listUser(userQueryModel);
         } catch (BadRequestException e) {
-            throw new ApiException(new ApiError(HttpStatus.BAD_REQUEST, e.getMessage()), e);
+            handleException(e);
         }
         
         return users.map(util::userToUserDto);
@@ -189,40 +186,107 @@ public class UserController extends GeneicValidator {
              @ApiResponse(code=400, message="Bad Request"),
              @ApiResponse(code=404, message="The user or the training account not found")
      })
-    @RequestMapping(value="/{username}/accounts/{accountId}/deposite", method=RequestMethod.POST, produces = "application/json")
-    public TrainingAccountDto addMoney(@PathVariable String username, 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @RequestMapping(value="/{userId}/accounts/{accountId}/deposite", method=POST, produces = "application/json")
+    public TrainingAccountDto addMoney(@PathVariable Long userId, 
             @PathVariable Long accountId, @RequestBody DepositeLogDto depositeDto) throws ApiException {
+        TrainingAccount updatedAccount = null;
          try {
             DepositeLog depostie = verifyDepositeLog(depositeDto);
-            TrainingAccount updatedAccount = userService.deposite(username, accountId, depostie);
-            
-            return util.geneicMapping(updatedAccount, TrainingAccountDto.class);
-        } catch (BadRequestException e) {
-            throw new ApiException(new ApiError(HttpStatus.BAD_REQUEST, e.getMessage()), e);
-        } catch (UserNotFoundException | TrainingAccountNotFoundException e) {
-            throw new ApiException(new ApiError(HttpStatus.NOT_FOUND, e.getMessage()), e);
+            updatedAccount = userService.deposite(userId, accountId, depostie);
+        } catch (BadRequestException | TrainingAccountNotFoundException | UserNotFoundException e) {
+            handleException(e);
         }
+         
+         return util.trainingAccountToDto(updatedAccount);
     }
     
-    @ApiOperation(value="query users by page")
+    
+    @RequestMapping(value="/{userId}/accounts/{accountId}/deposite/query", 
+            method=POST, produces="application/json")
+    public Page<DepositeLogDto> listDepositeLog(@PathVariable Long userId, 
+            @PathVariable Long accountId, @RequestBody DepositeQueryModel query) throws ApiException{
+        Page<DepositeLog> logs = null;
+        
+        try {
+            verifyDepositeQueryModel(query);
+            
+            logs = userService.listUserDepositeLog(userId, accountId, query);
+        } catch (BadRequestException e) {
+            handleException(e);
+        }
+        
+        return logs.map(util::deplositeLogtoDto);
+    }
+
+    @ApiOperation(value="update an account of a specific user")
     @ApiResponses(value={
              @ApiResponse(code=200, message="Current page of users"),
              @ApiResponse(code=403, message="Access forbidden"),
              @ApiResponse(code=400, message="Bad Request"),
              @ApiResponse(code=404, message="The user or the training account not found")
      })
-    @RequestMapping(value="/{username}/accounts/{accountId}", method=RequestMethod.PUT, produces = "application/json")
-    public TrainingAccountDto updateAccount(@PathVariable String username, 
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @RequestMapping(value="/{userId}/accounts/{accountId}", method=PUT, produces = "application/json")
+    public TrainingAccountDto updateAccount(@PathVariable Long userId, 
             @PathVariable Long accountId, @RequestBody TrainingAccountDto accountDto) throws ApiException {
+        
+        TrainingAccount account = null;
+        
         try {
-            TrainingAccount account = this.verifyAccount(accountDto);
-            account = userService.updateTrainingAccount(username, accountId, account);
+            account = this.verifyAccount(accountDto);
+            /*
+             * 仅能更新培训账户的有效日期和培训单价。
+             */
+            account = userService.updateTrainingAccount(userId, accountId, account);
             
-            return util.geneicMapping(account, TrainingAccountDto.class);
-        } catch (BadRequestException  e) {
-            throw new ApiException(new ApiError(HttpStatus.BAD_REQUEST, e.getMessage()), e);
-        } catch (UserNotFoundException | TrainingAccountNotFoundException  e) {
-            throw new ApiException(new ApiError(HttpStatus.NOT_FOUND, e.getMessage()), e);
+            
+        } catch (BadRequestException|UserNotFoundException | TrainingAccountNotFoundException  e) {
+            handleException(e);
+        } 
+        
+        return util.geneicMapping(account, TrainingAccountDto.class);
+    }
+    
+    @ApiOperation(value="query trainings being involved by a specific user")
+    @ApiResponses(value={
+             @ApiResponse(code=200, message="Current page of users"),
+             @ApiResponse(code=403, message="Access forbidden"),
+             @ApiResponse(code=400, message="Bad Request"),
+             @ApiResponse(code=404, message="The user or the training account not found")
+     })
+    @RequestMapping(value="/{userId}/trainings/query", method=POST, produces="application/json")
+    public Page<TrainingDto> listInvolvedTrainings(@PathVariable Long userId, 
+            @RequestBody TrainingQueryModel query) throws ApiException {
+        
+        Page<Training> trainings = null;
+        
+        try {
+            verifyTrainingQueryModel(query);
+            
+            //only use training title as query critiera
+            trainings = userService.listInvolvedTrainings(userId, query);
+            
+        } catch (BadRequestException | UserNotFoundException e) {
+            handleException(e);
+        } 
+
+        return trainings.map(util::trainingToDto);
+    }
+
+    @RequestMapping(value="/{userId}/accounts/{accountId}/trainingLogs/query", method=POST, produces="application/json")
+    public Page<TrainingLogDto> listTrainingLog(@PathVariable Long userId,
+            @PathVariable Long accountId, @RequestBody TrainingLogQueryModel query) throws ApiException {
+        Page<TrainingLog> logs = null;
+        try {
+            verifyTrainingLogQueryModel(query);
+            
+            logs = userService.listTrainingLog(userId, accountId, query);
+            
+        } catch (BadRequestException e) {
+            this.handleException(e);
         }
+        
+        return logs.map(util::trainingLogToDto);
     }
 }

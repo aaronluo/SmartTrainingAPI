@@ -17,6 +17,7 @@ import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.OneToMany;
 import javax.persistence.OneToOne;
+import javax.persistence.OrderBy;
 import javax.persistence.Table;
 
 import lombok.Data;
@@ -58,9 +59,11 @@ public class TrainingAccount extends BaseEntity {
     private Training training;
     
     @OneToMany(cascade = CascadeType.ALL, mappedBy="account")
+    @OrderBy("createDate desc")
     private Collection<DepositeLog> depositLogs = new ArrayList<DepositeLog>();
     
     @OneToMany(cascade=CascadeType.ALL, mappedBy="account")
+    @OrderBy("createDate desc")
     private Collection<TrainingLog> trainingLogs = new ArrayList<TrainingLog>();
     
     public void AddDepositeLog(DepositeLog deposite) {

@@ -3,11 +3,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.smarttraining.dao.UserDao;
 import com.smarttraining.entity.User;
-import com.smarttraining.exception.InvalidUserOrPasswordException;
 import com.smarttraining.exception.InvalidUsernamePasswordExcpetion;
 import com.smarttraining.exception.UserAlreadyExistingException;
-import com.smarttraining.exception.UserNotFoundException;
-import com.smarttraining.util.JWTUtil;
 import com.smarttraining.util.Util;
 
 import org.junit.Before;
@@ -44,11 +41,7 @@ public class UserServiceTest {
         public Util util() {
             return new Util();
         }
-        
-        @Bean
-        public JWTUtil JWTUtil() {
-            return new JWTUtil();
-        }
+       
     }
     
     @Autowired
@@ -92,20 +85,7 @@ public class UserServiceTest {
         assertThat(userService.isUserExisting("tom")).isFalse();
     }
     
-    @Test(expected = UserNotFoundException.class)
-    public void test_login_userNotFound() throws UserNotFoundException, InvalidUserOrPasswordException {
-        userService.login("tom", "");
-    }
-    
-    @Test
-    public void test_login() throws UserNotFoundException, InvalidUserOrPasswordException {
-        userService.login("eric", "");
-    }
-    
-    @Test(expected = InvalidUserOrPasswordException.class)
-    public void test_loginWithWrongPassword() throws UserNotFoundException, InvalidUserOrPasswordException {
-        userService.login("eric", "123");
-    }
+
     @Test(expected = InvalidUsernamePasswordExcpetion.class)
     public void test_registerWithWrongUsername() throws UserAlreadyExistingException, InvalidUsernamePasswordExcpetion {
         User user = new User();

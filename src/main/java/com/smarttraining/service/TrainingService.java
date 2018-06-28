@@ -9,6 +9,7 @@ import com.smarttraining.entity.User;
 import com.smarttraining.exception.TrainingAccountNotFoundException;
 import com.smarttraining.exception.TrainingNotFoundException;
 import com.smarttraining.exception.UserNotFoundException;
+import com.smarttraining.util.Util;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,9 @@ public class TrainingService {
 
     @Autowired
     private UserDao userDao;
+    
+    @Autowired
+    private Util util;
     
     public List<Training> getAllTrainings() {
         return trainingDao.findAll();
@@ -64,9 +68,40 @@ public class TrainingService {
         log.setTrainer(trainer);
         account.AddTrainingLog(log);
        
-        userDao.saveAndFlush(trainee);
+       trainee =  userDao.saveAndFlush(trainee);
        
+       account = trainee.getTrainingAccounts().stream()
+               .filter(c -> c.getTraining().getId() == trainingId).findFirst().orElse(null);
+
+        return ((List<TrainingLog>)account.getTrainingLogs()).get(0);
+    }
+
+    public Training update(Long trainingId, Training updatedTraining) 
+            throws TrainingNotFoundException {
+        Training training = this.getTraining(trainingId);
         
-        return log;
+        if(updatedTraining.getUnitPrice() != null) {
+            training.setUnitPrice(updatedTraining.getUnitPrice());
+        }
+        
+        if(updatedTraining.getLimitation() > 0) {
+            training.setLimitation(updatedTraining.getLimitation());
+        }
+        
+        if(!util.isEmpty(updatedTraining.getDescription())) {
+            training.setDescription(updatedTraining.getDescription());
+        }
+        
+        if(updatedTraining.getStartDate() != null) {
+            training.setStartDate(updatedTraining.getStartDate());
+        }
+        
+        if(updatedTraining.getEndDate() != null) {
+            training.setEndDate(updatedTraining.getEndDate());
+        }
+        
+        training = trainingDao.saveAndFlush(training);
+        
+        return training;
     }
 }

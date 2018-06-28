@@ -2,9 +2,14 @@ package com.smarttraining.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.smarttraining.dto.UserDto;
 import com.smarttraining.entity.Role;
 import com.smarttraining.entity.Training;
@@ -57,7 +62,7 @@ public class UtilTest {
         assertThat(user.getUsername()).isEqualTo(userDto.getUsername());
         assertThat(user.getProperties()).isNotNull();
         assertThat(user.getTrainingAccounts()).isNotNull();
-        assertThat(user.getRoles()).isNotNull();
+//        assertThat(user.getRoles()).isNotNull();
     }
 
     @Test
@@ -96,5 +101,27 @@ public class UtilTest {
         ObjectMapper mapper = new ObjectMapper();
         Object json = mapper.readValue(TestUtil.objToJson(util.userToUserDto(user)), Object.class);   
         System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json));
+    }
+    
+    
+    @Test
+    public void testLocalDateTimeDeserializer() {
+        String json = "{\"createDate\": {\"minVal\":\"2017-08-01 23:59:59\"}}";
+        
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.registerModule(new JavaTimeModule());
+        mapper.setSerializationInclusion(Include.NON_NULL);
+        mapper.configure(DeserializationFeature.READ_DATE_TIMESTAMPS_AS_NANOSECONDS, false);
+        mapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+        
+        
+        
+        try {
+            RangeVal<LocalDateTime> date = mapper.readValue(json, new TypeReference<RangeVal<LocalDateTime>>(){});
+            
+            System.out.println(date);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

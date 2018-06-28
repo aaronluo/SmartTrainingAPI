@@ -2,8 +2,6 @@ package com.smarttraining.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.smarttraining.entity.User;
-import com.smarttraining.util.JWTUtil;
 import com.smarttraining.util.Util;
 
 import org.junit.Test;
@@ -11,10 +9,7 @@ import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import java.time.LocalDateTime;
 
 @RunWith(SpringRunner.class)
 public class UtlTest {
@@ -26,17 +21,17 @@ public class UtlTest {
             return new Util();
         }
         
-        @Bean
-        public JWTUtil JWTUtil() {
-            return new JWTUtil();
-        }
+//        @Bean
+//        public JWTUtil JWTUtil() {
+//            return new JWTUtil();
+//        }
     }
     
     @Autowired
     private Util stUtil;
     
-    @Autowired
-    private JWTUtil jwtUtil;
+//    @Autowired
+//    private JWTUtil jwtUtil;
     
     @Test 
     public void test_username() {
@@ -59,17 +54,4 @@ public class UtlTest {
         assertThat(stUtil.isValidPassword("Sword2$812333")).isFalse();
     }
     
-    @Test
-    public void test_composeJWT() {
-        User user = new User();
-        user.setId(12345L);
-        user.setUsername("aaronluo");
-        user.setCreateDate(LocalDateTime.now());
-        
-        String token = jwtUtil.composeJwtToken(user);
-        
-        String username = jwtUtil.parseUsername(token);
-        
-        assertThat(username).isEqualTo("aaronluo");
-    }
 }

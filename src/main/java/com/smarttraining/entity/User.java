@@ -31,12 +31,12 @@ public class User extends BaseEntity {
     
     private String password;
     
-    @OneToMany(mappedBy="owner", orphanRemoval=true, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy="owner", orphanRemoval=true, cascade = CascadeType.ALL, fetch=FetchType.LAZY)
     @Where(clause="active=1")
     @OrderBy("id desc")
     private Collection<UserProperty> properties = new ArrayList<UserProperty>();
     
-    @OneToMany(mappedBy="owner", cascade= CascadeType.ALL)
+    @OneToMany(mappedBy="owner", cascade= CascadeType.ALL, fetch=FetchType.LAZY)
     @Where(clause="active=true")
     @OrderBy("createDate desc")
     private Collection<TrainingAccount> trainingAccounts = new ArrayList<TrainingAccount>();

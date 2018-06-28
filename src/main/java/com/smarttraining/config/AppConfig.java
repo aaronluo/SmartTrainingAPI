@@ -10,5 +10,4 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @EnableTransactionManagement
 @EnableJpaRepositories("com.smarttraining.dao")
 public class AppConfig {
-
 }

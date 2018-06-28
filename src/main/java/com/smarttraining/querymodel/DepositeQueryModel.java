@@ -2,32 +2,31 @@ package com.smarttraining.querymodel;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.smarttraining.util.RangeVal;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.List;
 
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
-public final class UserQueryModel extends BaseQueryModel {
+public class DepositeQueryModel extends BaseQueryModel {
 
-    private String username;
-    private List<String> roles;
+    private RangeVal<BigDecimal> amount;
 
     @JsonCreator
-    public UserQueryModel(
-            @JsonProperty("username") String username,
-            @JsonProperty("roles") List<String> roles,
+    public DepositeQueryModel(
             @JsonProperty("page") int page, 
             @JsonProperty("size") int size, 
             @JsonProperty("createDateMin") LocalDateTime createDateMin, 
-            @JsonProperty("createDateMax") LocalDateTime createDateMax) {
-
+            @JsonProperty("createDateMax") LocalDateTime createDateMax,
+            @JsonProperty("amount") RangeVal<BigDecimal> amount) {
+        
         super(page, size, createDateMin, createDateMax);
+        
+        this.amount = amount;
 
-        this.username = username;
-        this.roles = roles;
     }
 }

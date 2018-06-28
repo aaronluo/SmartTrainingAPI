@@ -8,12 +8,26 @@ import com.smarttraining.entity.DepositeLog;
 import com.smarttraining.entity.Training;
 import com.smarttraining.entity.TrainingAccount;
 import com.smarttraining.entity.TrainingLog;
+import com.smarttraining.exception.ApiError;
+import com.smarttraining.exception.ApiException;
 import com.smarttraining.exception.BadRequestException;
+import com.smarttraining.exception.InvalidUserOrPasswordException;
+import com.smarttraining.exception.InvalidUsernamePasswordExcpetion;
+import com.smarttraining.exception.PropertyAlreadyExistingException;
+import com.smarttraining.exception.TrainingAccountAlreadyExistingExecption;
+import com.smarttraining.exception.TrainingAccountNotFoundException;
+import com.smarttraining.exception.TrainingNotFoundException;
+import com.smarttraining.exception.UserAlreadyExistingException;
+import com.smarttraining.exception.UserNotFoundException;
 import com.smarttraining.querymodel.BaseQueryModel;
+import com.smarttraining.querymodel.DepositeQueryModel;
+import com.smarttraining.querymodel.TrainingLogQueryModel;
+import com.smarttraining.querymodel.TrainingQueryModel;
 import com.smarttraining.querymodel.UserQueryModel;
 import com.smarttraining.util.Util;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -26,6 +40,43 @@ public abstract class  GeneicValidator {
     @Autowired
     Util util;
     
+    protected void handleException(HttpStatus status, Exception cause) throws ApiException {
+        throw new ApiException(new ApiError(status,  cause.getMessage()), cause);
+    }
+    
+    protected void handleException(HttpStatus status, String message) throws ApiException {
+        throw new ApiException(new ApiError(status,  message), null);
+    }
+    
+    protected void handleException(Exception cause) throws ApiException {
+        if(cause instanceof BadRequestException ||
+                cause instanceof InvalidUsernamePasswordExcpetion ||
+                cause instanceof InvalidUserOrPasswordException ||
+                cause instanceof PropertyAlreadyExistingException ||
+                cause instanceof TrainingAccountAlreadyExistingExecption ||
+                cause instanceof UserAlreadyExistingException) {
+            this.handleException(HttpStatus.BAD_REQUEST, cause);
+        }else if(cause instanceof TrainingAccountNotFoundException ||
+                cause instanceof TrainingNotFoundException ||
+                cause instanceof UserNotFoundException) {
+            this.handleException(HttpStatus.NOT_FOUND, cause);
+        }else {
+            this.handleException(HttpStatus.INTERNAL_SERVER_ERROR, cause);
+        }
+    }
+    
+    protected void verifyTrainingLogQueryModel(TrainingLogQueryModel query) throws BadRequestException {
+        this.verifyPageAndSize(query);
+        this.verifyCreateDateRange(query);
+        if(query.getTrainerId() != null && query.getTrainerId().longValue() <= 0) {
+            throw new BadRequestException("The trainner id can not be negative"); 
+        }
+    }
+    
+    protected  void verifyTrainingQueryModel(TrainingQueryModel query) throws BadRequestException {
+        this.verifyPageAndSize(query);
+        this.verifyCreateDateRange(query);
+    }
     
     protected TrainingLog verifyTrainingLog(TrainingLogDto log) throws BadRequestException {
         if(log.getTrainerId() == null || log.getTrainerId().longValue() <= 0) {
@@ -35,7 +86,7 @@ public abstract class  GeneicValidator {
             throw new BadRequestException("The trainee id can not be null or zero"); 
         }
         
-        return util.geneicMapping(log, TrainingLog.class);
+        return util.trainingLogDtoToPo(log);
     }
     
     
@@ -72,16 +123,26 @@ public abstract class  GeneicValidator {
         return util.geneicMapping(trainingDto, Training.class);
     }
     
-    protected void verifyUserQueryModel(UserQueryModel userQueryModel) throws BadRequestException {
-        verifyPageAndSize(userQueryModel);
+    protected void verifyDepositeQueryModel(DepositeQueryModel query) throws BadRequestException {
+        verifyPageAndSize(query);
+        verifyCreateDateRange(query);
         
-        if(userQueryModel.getCreateDate() != null 
-                && userQueryModel.getCreateDate().getMinVal() != null 
-                && userQueryModel.getCreateDate().getMaxVal() != null
-                && userQueryModel.getCreateDate().getMinVal().isAfter(userQueryModel.getCreateDate().getMaxVal())) {
-            throw new BadRequestException("The min value of the create date should less than the max one");
+        if(query.getAmount().getMinVal() != null &&
+                query.getAmount().getMaxVal() != null) {
+            if(query.getAmount().getMinVal().compareTo(query.getAmount().getMaxVal()) >= 0) {
+                throw new BadRequestException("The min value should be less than the max value");
+            }
         }
     }
+    
+    
+    protected void verifyUserQueryModel(UserQueryModel userQueryModel) throws BadRequestException {
+        verifyPageAndSize(userQueryModel);
+        verifyCreateDateRange(userQueryModel);
+    }
+
+
+
 
     /**
      * verify if passed in accountDto has correct information for create a new account entity
@@ -122,7 +183,7 @@ public abstract class  GeneicValidator {
         return account;
     }
     
-    private void verifyPageAndSize(BaseQueryModel queryModel)
+    protected void verifyPageAndSize(BaseQueryModel queryModel)
             throws BadRequestException {
         if (queryModel.getPage() <= 0) {
             throw new BadRequestException("The page index can not be negative or zero");
@@ -130,6 +191,16 @@ public abstract class  GeneicValidator {
         
         if(queryModel.getSize() <= 0) {
             throw new BadRequestException("The page size can not be negative or zero");
+        }
+    }
+    
+    protected void verifyCreateDateRange(BaseQueryModel queryModel)
+            throws BadRequestException {
+        if(queryModel.getCreateDate() != null 
+                && queryModel.getCreateDate().getMinVal() != null 
+                && queryModel.getCreateDate().getMaxVal() != null
+                && queryModel.getCreateDate().getMinVal().isAfter(queryModel.getCreateDate().getMaxVal())) {
+            throw new BadRequestException("The min value of the create date should less than the max one");
         }
     }
 }

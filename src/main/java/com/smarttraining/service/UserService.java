@@ -2,19 +2,25 @@ package com.smarttraining.service;
 
 import com.querydsl.core.BooleanBuilder;
 import com.querydsl.jpa.JPAExpressions;
+import com.smarttraining.dao.DepositeLogDao;
 import com.smarttraining.dao.RoleDao;
 import com.smarttraining.dao.TrainingDao;
+import com.smarttraining.dao.TrainingLogDao;
 import com.smarttraining.dao.UserDao;
-import com.smarttraining.dto.UserToken;
 import com.smarttraining.entity.DepositeLog;
+import com.smarttraining.entity.QDepositeLog;
 import com.smarttraining.entity.QRole;
+import com.smarttraining.entity.QTraining;
+import com.smarttraining.entity.QTrainingAccount;
+import com.smarttraining.entity.QTrainingLog;
 import com.smarttraining.entity.QUser;
 import com.smarttraining.entity.Role;
 import com.smarttraining.entity.Training;
 import com.smarttraining.entity.TrainingAccount;
+import com.smarttraining.entity.TrainingLog;
 import com.smarttraining.entity.User;
 import com.smarttraining.entity.UserProperty;
-import com.smarttraining.exception.InvalidUserOrPasswordException;
+import com.smarttraining.exception.BadRequestException;
 import com.smarttraining.exception.InvalidUsernamePasswordExcpetion;
 import com.smarttraining.exception.PropertyAlreadyExistingException;
 import com.smarttraining.exception.TrainingAccountAlreadyExistingExecption;
@@ -22,13 +28,17 @@ import com.smarttraining.exception.TrainingAccountNotFoundException;
 import com.smarttraining.exception.TrainingNotFoundException;
 import com.smarttraining.exception.UserAlreadyExistingException;
 import com.smarttraining.exception.UserNotFoundException;
+import com.smarttraining.querymodel.BaseQueryModel;
+import com.smarttraining.querymodel.DepositeQueryModel;
+import com.smarttraining.querymodel.TrainingLogQueryModel;
+import com.smarttraining.querymodel.TrainingQueryModel;
 import com.smarttraining.querymodel.UserQueryModel;
-import com.smarttraining.util.JWTUtil;
 import com.smarttraining.util.Util;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -49,10 +59,16 @@ public class UserService {
     private TrainingDao trainingDao;
     
     @Autowired
-    private Util util;
+    private DepositeLogDao depositeLogDao;
     
     @Autowired
-    private JWTUtil jwtUtil;
+    private TrainingLogDao trainingLogDao;
+    
+    @Autowired
+    private Util util;
+    
+//    @Autowired
+//    private JWTUtil jwtUtil;
     
     private BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
     
@@ -75,27 +91,27 @@ public class UserService {
      * @throws UserNotFoundException 
      * @throws InvalidUserOrPasswordException 
      */
-    public UserToken login(String username, String password) 
-            throws UserNotFoundException, InvalidUserOrPasswordException {
-        Optional<User> user = userDao.findByUsername(username);
-        UserToken token = new UserToken();
-        
-        if(user.isPresent()) {
-            if(passwordEncoder.matches(password, user.get().getPassword())){
-                token.setUsername(username);
-                token.setUserId(user.get().getId());
-                token.setAccessToken(jwtUtil.composeJwtToken(user.get()));
-                token.setExpireDatetime(jwtUtil.parseExpirationDate(token.getAccessToken()));
-                token.setRefreshToken("12345");
-            }else{
-                throw new InvalidUserOrPasswordException(username);
-            }
-        }else{
-            throw new UserNotFoundException(username);
-        }
-        
-        return token;
-    }
+//    public UserToken login(String username, String password) 
+//            throws UserNotFoundException, InvalidUserOrPasswordException {
+//        Optional<User> user = userDao.findByUsername(username);
+//        UserToken token = new UserToken();
+//        
+//        if(user.isPresent()) {
+//            if(passwordEncoder.matches(password, user.get().getPassword())){
+//                token.setUsername(username);
+//                token.setUserId(user.get().getId());
+//                token.setAccessToken(jwtUtil.composeJwtToken(user.get()));
+//                token.setExpireDatetime(jwtUtil.parseExpirationDate(token.getAccessToken()));
+//                token.setRefreshToken("12345");
+//            }else{
+//                throw new InvalidUserOrPasswordException(username);
+//            }
+//        }else{
+//            throw new UserNotFoundException(username);
+//        }
+//        
+//        return token;
+//    }
     
     /**
      * 用户注册，仅设置用户名，密码和权限，附加属性，训练账户信息调用其他方法添加
@@ -134,7 +150,7 @@ public class UserService {
     }
     
     /**
-     * 更新用户信息，前端需限制住次方法仅用来更新用户密码
+     * 更新用户信息，前端需限制住这个方法仅用来更新用户密码
      * @param user
      * @return
      */
@@ -164,7 +180,7 @@ public class UserService {
      * @throws UserNotFoundException
      */
     public User getUser(Long id) throws UserNotFoundException {
-        User user = userDao.getOne(id);
+        User user = userDao.findOne(id);
         
         if (user == null)
             throw  new UserNotFoundException("" + id);
@@ -241,42 +257,42 @@ public class UserService {
         BooleanBuilder builder = new BooleanBuilder();
         
         if(!util.isEmpty(userQueryModel.getUsername())) {
-            builder.and(user.username.like( "%" + userQueryModel.getUsername() + "%"));
+            builder.and(user.username.like(userQueryModel.getUsername() + "%"));
         }
         if(userQueryModel.getCreateDate() != null) {
             if(userQueryModel.getCreateDate().getMinVal() != null) {
-                builder.and(user.createDate.gt(userQueryModel.getCreateDate().getMinVal()));
+                builder.and(user.createDate.goe(userQueryModel.getCreateDate().getMinVal()));
             }
             if(userQueryModel.getCreateDate().getMaxVal() != null) {
-                builder.and(user.createDate.lt(userQueryModel.getCreateDate().getMaxVal()));
+                builder.and(user.createDate.loe(userQueryModel.getCreateDate().getMaxVal()));
             }
         }
 
         if(userQueryModel.getRoles() != null && userQueryModel.getRoles().size() > 0) {
-            builder.and(user.roles.contains(JPAExpressions.selectFrom(role).where(role.name.in("TRAINER"))));
+            builder.and(user.roles.any().in(JPAExpressions.selectFrom(role).where(role.name.in(userQueryModel.getRoles()))));
         }
         return userDao.findAll(builder.getValue(), 
-                new PageRequest(userQueryModel.getPage() - 1, userQueryModel.getSize()));
+                cratePageRequest(userQueryModel));
     }
 
     /**
      * 给指定用户的指定培训账户充值
-     * @param username
+     * @param userId
      * @param accountId
      * @param deposite
      * @return
      * @throws UserNotFoundException
      * @throws TrainingAccountNotFoundException
      */
-    public TrainingAccount deposite(String username, Long accountId, DepositeLog deposite) 
+    public TrainingAccount deposite(Long userId, Long accountId, DepositeLog deposite) 
             throws UserNotFoundException, TrainingAccountNotFoundException {
-        User user = this.getUser(username);
+        User user = this.getUser(userId);
         
         TrainingAccount account = user.getTrainingAccounts().stream()
                 .filter(c -> c.getId() == accountId).findFirst().orElse(null);
         
         if(account == null) {
-            throw new TrainingAccountNotFoundException(username, accountId);
+            throw new TrainingAccountNotFoundException("" + userId, accountId);
         }
         
         account.AddDepositeLog(deposite);
@@ -295,7 +311,7 @@ public class UserService {
      * @throws UserNotFoundException
      * @throws TrainingAccountNotFoundException 
      */
-    public TrainingAccount updateTrainingAccount(String username,
+    public TrainingAccount updateTrainingAccount(Long userId,
             Long accountId, TrainingAccount account) 
                     throws UserNotFoundException, TrainingAccountNotFoundException {
         /*
@@ -304,12 +320,12 @@ public class UserService {
          * 如果要更改账户对应的培训类型，必须进行新建账户操作，将账户
          * 余额迁移至新账户
          */
-        User user = getUser(username);
+        User user = getUser(userId);
         TrainingAccount curAccount = user.getTrainingAccounts().stream()
                 .filter(c -> c.getId() == accountId).findFirst().orElse(null);
         
         if(curAccount == null) {
-            throw new TrainingAccountNotFoundException(username, accountId);
+            throw new TrainingAccountNotFoundException("" + userId, accountId);
         }
         
         curAccount.setValidBeginDate(account.getValidBeginDate());
@@ -319,5 +335,110 @@ public class UserService {
         userDao.saveAndFlush(user);
         
         return curAccount;
+    }
+
+    /**
+     * 查询用户存钱的记录
+     * @param userId
+     * @param accountId
+     * @param query
+     * @return
+     */
+    public Page<DepositeLog> listUserDepositeLog(Long userId, Long accountId,
+            DepositeQueryModel query) {
+        QDepositeLog depositeLog = QDepositeLog.depositeLog;
+        QTrainingAccount account = QTrainingAccount.trainingAccount;
+        QUser user = QUser.user;
+        
+        BooleanBuilder builder = new BooleanBuilder();
+        
+        builder
+            .and(depositeLog.account.id.eq(accountId))
+            .and(depositeLog.account.owner.id.eq(userId));
+        
+        if(query.getAmount() != null) {
+            if(query.getAmount().getMinVal() != null) {
+                builder.and(depositeLog.amount.goe(query.getAmount().getMinVal()));
+            }
+            
+            if(query.getAmount().getMaxVal() != null) {
+                builder.and(depositeLog.amount.loe(query.getAmount().getMaxVal()));
+            }
+        }
+        
+        if(query.getCreateDate() != null) {
+            if(query.getCreateDate().getMinVal() != null) {
+                builder.and(depositeLog.createDate.goe(query.getCreateDate().getMinVal()));
+            }
+            if(query.getCreateDate().getMaxVal() != null) {
+                builder.and(depositeLog.createDate.loe(query.getCreateDate().getMaxVal()));
+            }
+        }
+        
+        return depositeLogDao.findAll(builder.getValue(), cratePageRequest(query));
+    }
+
+    public Page<Training> listInvolvedTrainings(Long userId,
+            TrainingQueryModel query) throws UserNotFoundException, BadRequestException {
+        QUser user = QUser.user;
+        QTraining training = QTraining.training;
+        QTrainingAccount account = QTrainingAccount.trainingAccount;
+        QTrainingLog log = QTrainingLog.trainingLog;
+        BooleanBuilder builder = new BooleanBuilder();
+        
+        if(!util.isEmpty(query.getTitle())) {
+            builder.and(training.title.like(query.getTitle() + "%"));
+        }
+        
+        User pUser = userDao.findOne(userId);
+        if(pUser == null) {
+             throw new UserNotFoundException("" + userId);
+        }
+        
+        if(pUser.getRoles().stream().filter(r -> r.getName().equals("ROLE_TRAINEE")).count() > 0) {
+            //This user is a trainee
+            builder.and(training.accounts.any().owner.id.eq(userId));
+        }else if(pUser.getRoles().stream().filter(r -> r.getName().equals("ROLE_TRAINER")).count() > 0) {
+            //this user is a trainner
+            builder.and(training.accounts.any().trainingLogs.any().trainer.id.eq(userId));
+        }else{
+            throw new BadRequestException(String.format("This user[%d] is not a trainner or trainee", userId));
+        }
+
+        return trainingDao.findAll(builder.getValue(), cratePageRequest(query));
+    }
+
+    public Page<TrainingLog> listTrainingLog(Long userId, Long accountId,
+            TrainingLogQueryModel query) {
+        
+        QTrainingLog trainingLog = QTrainingLog.trainingLog;
+        QTrainingAccount account = QTrainingAccount.trainingAccount;
+        QUser user = QUser.user;
+        
+        BooleanBuilder builder = new BooleanBuilder();
+        
+        builder.and(trainingLog.trainee.id.eq(userId)).and(trainingLog.account.id.eq(accountId));
+        
+        if(query.getTrainerId() != null) {
+            builder.and(trainingLog.trainer.id.eq(query.getTrainerId()));
+        }
+        
+        if(query.getCreateDate() != null) {
+            if(query.getCreateDate().getMinVal() != null) {
+                builder.and(trainingLog.createDate.goe(query.getCreateDate().getMinVal()));
+            }
+            if(query.getCreateDate().getMaxVal() != null) {
+                builder.and(trainingLog.createDate.loe(query.getCreateDate().getMaxVal()));
+            }
+        }
+        
+        
+        
+        return trainingLogDao.findAll(builder.getValue(), cratePageRequest(query));
+        
+    }
+    
+    private PageRequest cratePageRequest(BaseQueryModel query) {
+        return new PageRequest(query.getPage() - 1, query.getSize(), Sort.Direction.DESC, "id");
     }
 }

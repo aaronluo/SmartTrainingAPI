@@ -8,7 +8,9 @@ import lombok.Data;
 @Data
 public class DepositeLogDto {
 
-    TrainingAccountDto account;
+    Long id;
+    
+    Long accountId;
     
     BigDecimal amount;
     

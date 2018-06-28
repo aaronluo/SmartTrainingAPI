@@ -1,9 +1,15 @@
 package com.smarttraining.util;
 
+import com.smarttraining.dto.DepositeLogDto;
 import com.smarttraining.dto.TrainingAccountDto;
+import com.smarttraining.dto.TrainingDto;
+import com.smarttraining.dto.TrainingLogDto;
 import com.smarttraining.dto.UserDto;
 import com.smarttraining.dto.UserPropertyDto;
+import com.smarttraining.entity.DepositeLog;
+import com.smarttraining.entity.Training;
 import com.smarttraining.entity.TrainingAccount;
+import com.smarttraining.entity.TrainingLog;
 import com.smarttraining.entity.User;
 import com.smarttraining.entity.UserProperty;
 
@@ -52,7 +58,19 @@ public final class Util {
     }
     
     public UserDto userToUserDto(User user) {
-        return modelMapper.map(user, UserDto.class);
+        UserDto ret = modelMapper.map(user, UserDto.class);
+        
+        user.getTrainingAccounts().forEach(c -> {
+            ret.getTrainingAccounts().stream().filter(a -> a.getId() == c.getId())
+                .findFirst().ifPresent( a -> {
+                    a.setDepositeLogCount(c.getDepositLogs().size());
+                    a.setTraingLogCount(c.getTrainingLogs().size());
+                });
+        });
+        
+        ret.setPassword("********");
+        
+        return ret;
     }
 
     public UserProperty propDtoToProp(UserPropertyDto propDto) {
@@ -64,12 +82,33 @@ public final class Util {
         return modelMapper.map(accountDto, TrainingAccount.class);
     }
     
-    public ModelMapper getMapper() {
-        return modelMapper;
+    public TrainingAccountDto trainingAccountToDto(TrainingAccount account) {
+        TrainingAccountDto ret = this.geneicMapping(account, TrainingAccountDto.class);
+        
+        ret.setDepositeLogCount(account.getDepositLogs().size());
+        ret.setTraingLogCount(account.getTrainingLogs().size());
+        
+        return ret;
     }
 
+    public DepositeLogDto deplositeLogtoDto(DepositeLog log) {
+        return this.geneicMapping(log, DepositeLogDto.class);
+    }
+    
+    public TrainingDto trainingToDto(Training training) {
+        return this.geneicMapping(training, TrainingDto.class);
+    }
+    
     public <D, T> D geneicMapping(T source, Class<D> destClass) {
         return modelMapper.map(source, destClass);
+    }
+
+    public TrainingLog trainingLogDtoToPo(TrainingLogDto log) {
+        return modelMapper.map(log, TrainingLog.class);
+    }
+    
+    public TrainingLogDto trainingLogToDto(TrainingLog log) {
+        return modelMapper.map(log, TrainingLogDto.class);
     }
     
 //    public <D, T> T dtoToPo(D dto, Class<T> typeParameterClass) {

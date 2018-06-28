@@ -3,24 +3,27 @@ package com.smarttraining.security;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @SuppressWarnings("serial")
 public class SecurityUser implements UserDetails {
 
     String password;
     String username;
+    List<GrantedAuthority> authorities = new ArrayList<GrantedAuthority>();
     
-    public SecurityUser(String username, String password) {
+    public SecurityUser(String username, String password, List<GrantedAuthority> authorities) {
         this.username = username;
         this.password = password;
+        this.authorities = authorities;
     }
     
     
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        // TODO Auto-generated method stub
-        return null;
+        return this.authorities;
     }
 
     @Override

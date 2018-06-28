@@ -36,7 +36,7 @@ public class Training extends BaseEntity {
     @Lob
     private String description;
     
-    @Column(precision=5, scale=2, nullable=false)
+    @Column(precision=8, scale=2, nullable=false)
     private BigDecimal unitPrice;
     
     @Column(nullable=true)
