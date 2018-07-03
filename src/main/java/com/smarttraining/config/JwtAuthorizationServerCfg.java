@@ -1,5 +1,7 @@
 package com.smarttraining.config;
 
+import com.smarttraining.security.CustomTokenEnhancer;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,9 +17,13 @@ import org.springframework.security.oauth2.config.annotation.web.configuration.E
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;
 import org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerSecurityConfigurer;
 import org.springframework.security.oauth2.provider.token.DefaultTokenServices;
+import org.springframework.security.oauth2.provider.token.TokenEnhancer;
+import org.springframework.security.oauth2.provider.token.TokenEnhancerChain;
 import org.springframework.security.oauth2.provider.token.TokenStore;
 import org.springframework.security.oauth2.provider.token.store.JwtAccessTokenConverter;
 import org.springframework.security.oauth2.provider.token.store.JwtTokenStore;
+
+import java.util.Arrays;
 
 @Configuration
 @EnableAuthorizationServer
@@ -44,15 +50,10 @@ public class JwtAuthorizationServerCfg extends AuthorizationServerConfigurerAdap
     @Qualifier("authenticationManagerBean")
     private AuthenticationManager authenticationManager;
     
-//    @Bean
-//    public UserDetailsService userDetailsService() {
-//        return new SecurityUserService();
-//    }
-    
-//    @Bean
-//    public BCryptPasswordEncoder passwordEncoder() {
-//        return new BCryptPasswordEncoder();
-//    }
+    @Bean
+    public TokenEnhancer tokenEnhancer() {
+        return new CustomTokenEnhancer();
+    }
     
     @Autowired
     UserDetailsService userDetailsService;
@@ -75,10 +76,15 @@ public class JwtAuthorizationServerCfg extends AuthorizationServerConfigurerAdap
     @Override
     public void configure(AuthorizationServerEndpointsConfigurer endpoints)
             throws Exception {
+        final TokenEnhancerChain tokenEnhancerChain = new TokenEnhancerChain();
+        tokenEnhancerChain.setTokenEnhancers(Arrays.asList(tokenEnhancer(), accessTokenConverter()));
         endpoints
             .tokenStore(tokenStore())
-            .accessTokenConverter(accessTokenConverter())
+            .tokenEnhancer(tokenEnhancerChain)
+//            .accessTokenConverter(accessTokenConverter())
             .authenticationManager(authenticationManager);
+        
+//        endpoints.pathMapping("/oauth/token", "/api/users/login");
     }
 
     @Override
