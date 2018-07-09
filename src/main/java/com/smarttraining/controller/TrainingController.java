@@ -49,7 +49,7 @@ public class TrainingController extends GeneicValidator {
     public List<TrainingDto> listTrainings() {
         List<Training> training = trainingService.getAllTrainings();
         
-        return training.stream().map(t -> util.geneicMapping(t, TrainingDto.class)).collect(Collectors.toList());
+        return training.stream().map(t -> util.trainingToDto(t)).collect(Collectors.toList());
     }
     
     @ApiOperation(value="get a specific training")

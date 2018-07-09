@@ -96,7 +96,11 @@ public final class Util {
     }
     
     public TrainingDto trainingToDto(Training training) {
-        return this.geneicMapping(training, TrainingDto.class);
+        TrainingDto ret = this.geneicMapping(training, TrainingDto.class);
+        
+        ret.setAttendeeCount(training.getAccounts().size());
+        
+        return ret;
     }
     
     public <D, T> D geneicMapping(T source, Class<D> destClass) {

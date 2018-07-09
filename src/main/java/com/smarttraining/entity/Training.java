@@ -1,6 +1,7 @@
 package com.smarttraining.entity;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.smarttraining.dto.type.TrainingType;
 
 import org.hibernate.annotations.SQLDelete;
 import org.hibernate.annotations.Where;
@@ -49,6 +50,9 @@ public class Training extends BaseEntity {
     
     @Column(columnDefinition="int default 0")
     private int limitation;
+    
+    @Column(nullable=false)
+    private TrainingType type = TrainingType.CLASS;
     
     @OneToMany(mappedBy="training", cascade = CascadeType.ALL)
     @Where(clause="active=true")

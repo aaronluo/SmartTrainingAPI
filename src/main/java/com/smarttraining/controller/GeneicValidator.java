@@ -105,19 +105,19 @@ public abstract class  GeneicValidator {
         }
         
         if(trainingDto.getUnitPrice().compareTo(BigDecimal.ZERO) == -1) {
-            throw new BadRequestException("The unit price of a traiing can not be negative");
+            throw new BadRequestException("The unit price of a training can not be negative");
         }
         
         if(trainingDto.getLimitation() <= 0) {
-            throw new BadRequestException("The limitation of a traiing can not be negative");
+            throw new BadRequestException("The limitation of a training can not be negative");
         }
         
         if(trainingDto.getStartDate() == null || trainingDto.getStartDate().isBefore(LocalDate.now(ZoneId.systemDefault()))) {
-            throw new BadRequestException("The start date  of a traiing must be set a date of today or future");
+            throw new BadRequestException("The start date  of a training must be set a date of today or future");
         }
         
         if(trainingDto.getEndDate() != null && trainingDto.getEndDate().isBefore(trainingDto.getStartDate())) {
-            throw new BadRequestException("The end date  of a traiing must be after the start date");
+            throw new BadRequestException("The end date  of a training must be after the start date");
         }
         
         return util.geneicMapping(trainingDto, Training.class);

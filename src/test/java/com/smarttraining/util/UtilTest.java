@@ -97,10 +97,6 @@ public class UtilTest {
         account.setValidEndDate(training.getEndDate());
         
         user.addTrainingAccount(account);
-        
-        ObjectMapper mapper = new ObjectMapper();
-        Object json = mapper.readValue(TestUtil.objToJson(util.userToUserDto(user)), Object.class);   
-        System.out.println(mapper.writerWithDefaultPrettyPrinter().writeValueAsString(json));
     }
     
     
