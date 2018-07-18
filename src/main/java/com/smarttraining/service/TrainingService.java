@@ -1,7 +1,11 @@
 package com.smarttraining.service;
 
+import com.querydsl.core.BooleanBuilder;
 import com.smarttraining.dao.TrainingDao;
 import com.smarttraining.dao.UserDao;
+import com.smarttraining.entity.QTraining;
+import com.smarttraining.entity.QTrainingAccount;
+import com.smarttraining.entity.QUser;
 import com.smarttraining.entity.Training;
 import com.smarttraining.entity.TrainingAccount;
 import com.smarttraining.entity.TrainingLog;
@@ -9,9 +13,13 @@ import com.smarttraining.entity.User;
 import com.smarttraining.exception.TrainingAccountNotFoundException;
 import com.smarttraining.exception.TrainingNotFoundException;
 import com.smarttraining.exception.UserNotFoundException;
+import com.smarttraining.querymodel.BaseQueryModel;
 import com.smarttraining.util.Util;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -103,5 +111,20 @@ public class TrainingService {
         training = trainingDao.saveAndFlush(training);
         
         return training;
+    }
+
+    public Page<User> listUsers(Long trainingId, BaseQueryModel query) {
+       QUser user = QUser.user;
+       QTraining training = QTraining.training;
+       QTrainingAccount account = QTrainingAccount.trainingAccount;
+       
+       BooleanBuilder builder = new BooleanBuilder();
+       builder.and(user.trainingAccounts.any().training.id.eq(trainingId));
+        
+       return userDao.findAll(builder.getValue(), cratePageRequest(query));
+    }
+    
+    private PageRequest cratePageRequest(BaseQueryModel query) {
+        return new PageRequest(query.getPage() - 1, query.getSize(), Sort.Direction.DESC, "id");
     }
 }

@@ -274,6 +274,13 @@ public class UserController extends GeneicValidator {
         return trainings.map(util::trainingToDto);
     }
 
+    @ApiOperation(value="query training logs of a specific user account")
+    @ApiResponses(value={
+             @ApiResponse(code=200, message="Current training logs "),
+             @ApiResponse(code=403, message="Access forbidden"),
+             @ApiResponse(code=400, message="Bad Request"),
+             @ApiResponse(code=404, message="The user or the training account not found")
+     })
     @RequestMapping(value="/{userId}/accounts/{accountId}/trainingLogs/query", method=POST, produces="application/json")
     public Page<TrainingLogDto> listTrainingLog(@PathVariable Long userId,
             @PathVariable Long accountId, @RequestBody TrainingLogQueryModel query) throws ApiException {

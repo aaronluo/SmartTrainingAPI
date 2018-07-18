@@ -6,16 +6,20 @@ import static org.springframework.web.bind.annotation.RequestMethod.PUT;
 
 import com.smarttraining.dto.TrainingDto;
 import com.smarttraining.dto.TrainingLogDto;
+import com.smarttraining.dto.UserDto;
 import com.smarttraining.entity.Training;
 import com.smarttraining.entity.TrainingLog;
+import com.smarttraining.entity.User;
 import com.smarttraining.exception.ApiException;
 import com.smarttraining.exception.BadRequestException;
 import com.smarttraining.exception.TrainingAccountNotFoundException;
 import com.smarttraining.exception.TrainingNotFoundException;
 import com.smarttraining.exception.UserNotFoundException;
+import com.smarttraining.querymodel.UserQueryModel;
 import com.smarttraining.service.TrainingService;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -110,7 +114,7 @@ public class TrainingController extends GeneicValidator {
              @ApiResponse(code=200, message="the new training log"),
              @ApiResponse(code=403, message="Access forbidden"),
              @ApiResponse(code=400, message="Bad request"),
-             @ApiResponse(code=400, message="Trainer and/or Trainee and/or Training not found")
+             @ApiResponse(code=404, message="Trainer and/or Trainee and/or Training not found")
      })
     @RequestMapping(value="/{trainingId}/logs", method=POST, produces = "application/json")
     public TrainingLogDto addTrainingLog(@PathVariable Long trainingId, 
@@ -127,5 +131,26 @@ public class TrainingController extends GeneicValidator {
         } 
         
         return util.geneicMapping(log, TrainingLogDto.class);
+    }
+    
+    @ApiOperation(value="get the page of users of a sepcific training")
+    @ApiResponses(value={
+             @ApiResponse(code=200, message="the page of users"),
+             @ApiResponse(code=403, message="Access forbidden"),
+             @ApiResponse(code=400, message="Bad request"),
+             @ApiResponse(code=404, message="training not found")
+     })
+    @RequestMapping(value="/{trainingId}/users/query", method=POST, produces="application/json")
+    public Page<UserDto> listUsersOfTraining(@PathVariable Long trainingId, 
+            @RequestBody UserQueryModel query) throws ApiException{
+        Page<User> users = null;
+        try {
+            verifyPageAndSize(query);
+            users = trainingService.listUsers(trainingId, query);
+        } catch (BadRequestException e) {
+            this.handleException(e);
+        }
+        
+        return users.map(util::userToUserDto);
     }
 }
