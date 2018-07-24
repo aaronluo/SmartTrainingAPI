@@ -63,7 +63,7 @@ public class UserController extends GeneicValidator {
              @ApiResponse(code=403, message="Access forbidden"),
              @ApiResponse(code=400, message="Wrong username or password")
      })
-    @RequestMapping(value="/register", method = POST,  produces = "application/json")
+    @RequestMapping(value="", method = POST,  produces = "application/json")
     public UserDto register(@RequestBody UserDto userDto) throws ApiException {
         User user = util.geneicMapping(userDto, User.class);
         try {
