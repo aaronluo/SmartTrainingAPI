@@ -1,5 +1,6 @@
 package com.smarttraining.entity;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonFormat;
 
 import org.hibernate.annotations.SQLDelete;
@@ -38,6 +39,7 @@ public class TrainingAccount extends BaseEntity {
     
     @ManyToOne
     @JoinColumn(name="owner_id", nullable=true)
+    @JsonBackReference
     private User owner;
     
     @Column(precision=9, scale=2)

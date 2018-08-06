@@ -61,11 +61,7 @@ public final class Util {
         UserDto ret = modelMapper.map(user, UserDto.class);
         
         user.getTrainingAccounts().forEach(c -> {
-            ret.getTrainingAccounts().stream().filter(a -> a.getId() == c.getId())
-                .findFirst().ifPresent( a -> {
-                    a.setDepositeLogCount(c.getDepositLogs().size());
-                    a.setTraingLogCount(c.getTrainingLogs().size());
-                });
+            ret.getTrainingAccounts().add(this.trainingAccountToDto(c));
         });
         
         ret.setPassword("********");
@@ -83,10 +79,16 @@ public final class Util {
     }
     
     public TrainingAccountDto trainingAccountToDto(TrainingAccount account) {
-        TrainingAccountDto ret = this.geneicMapping(account, TrainingAccountDto.class);
-        
+//        TrainingAccountDto ret = this.geneicMapping(account, TrainingAccountDto.class);
+        TrainingAccountDto ret = new TrainingAccountDto();
+        ret.setBalance(account.getBalance());
+        ret.setId(account.getId());
+        ret.setTraining(this.trainingToDto(account.getTraining()));
+        ret.setUnitPrice(account.getUnitPrice());
+        ret.setValidBeginDate(account.getValidBeginDate());
+        ret.setValidEndDate(account.getValidEndDate());
         ret.setDepositeLogCount(account.getDepositLogs().size());
-        ret.setTraingLogCount(account.getTrainingLogs().size());
+        ret.setTrainingLogCount(account.getTrainingLogs().size());
         
         return ret;
     }

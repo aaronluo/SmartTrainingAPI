@@ -3,6 +3,8 @@ package com.smarttraining;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.smarttraining.dto.UserDto;
+import com.smarttraining.entity.User;
 
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
@@ -37,6 +39,8 @@ public class SmartTrainingAPIApplication {
     public ModelMapper modelMapper() {
         ModelMapper mapper = new ModelMapper();
         mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.LOOSE);
+        mapper.typeMap(User.class, UserDto.class)
+                .addMappings(mp -> mp.skip(UserDto::setTrainingAccounts));
         
         return  mapper;
     }

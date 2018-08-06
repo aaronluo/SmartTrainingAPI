@@ -12,8 +12,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TrainingAccountDto {
     Long id;
-    Long ownerId;
-    String ownerUsername;
+//    Long ownerId;
+//    String ownerUsername;
     TrainingDto training;
 //    Long trainingId;
 //    String trainingTitle;
@@ -21,6 +21,6 @@ public class TrainingAccountDto {
     BigDecimal unitPrice;
     LocalDate validBeginDate;
     LocalDate validEndDate;
-    int DepositeLogCount;
-    int TraingLogCount;
+    int depositeLogCount;
+    int trainingLogCount;
 }

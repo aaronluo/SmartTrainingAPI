@@ -127,7 +127,8 @@ public abstract class  GeneicValidator {
         verifyPageAndSize(query);
         verifyCreateDateRange(query);
         
-        if(query.getAmount().getMinVal() != null &&
+        if(query.getAmount() != null &&
+                    query.getAmount().getMinVal() != null &&
                 query.getAmount().getMaxVal() != null) {
             if(query.getAmount().getMinVal().compareTo(query.getAmount().getMaxVal()) >= 0) {
                 throw new BadRequestException("The min value should be less than the max value");
