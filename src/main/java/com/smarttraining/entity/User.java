@@ -38,7 +38,7 @@ public class User extends BaseEntity {
     
     @OneToMany(mappedBy="owner", cascade= CascadeType.ALL, fetch=FetchType.LAZY)
     @Where(clause="active=true")
-    @OrderBy("createDate desc")
+    @OrderBy("createDate asc")
     private Collection<TrainingAccount> trainingAccounts = new ArrayList<TrainingAccount>();
     
     
